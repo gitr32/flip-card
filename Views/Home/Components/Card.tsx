@@ -34,8 +34,6 @@ export default function Card(props: Props) {
       <Animated.View style={[styles.cardContainer, frontAnimatedStyle, {flex: hiddenSideFlexValue, height: 0}]}>
         <Animated.Text style={[styles.text]}>{"?"}</Animated.Text>
       </Animated.View>
-      
-      
     </TouchableOpacity>
   );
 }
