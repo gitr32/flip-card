@@ -37,6 +37,7 @@ class Home extends React.Component<Props, State>{
   }
 
   restart(flippedCardsArr: FlippedCard[]) {
+    this.props.resetStep();
     flippedCardsArr.splice(0, flippedCardsArr.length);
     this.populateCards();
   }
@@ -98,7 +99,7 @@ class Home extends React.Component<Props, State>{
     const flippedCardsArr = [];
     return (
       <SafeAreaView style={styles.container}>
-        <Header restart={() => console.log("test")} steps={this.props.steps} />
+        <Header restart={() => this.restart(flippedCardsArr)} steps={this.props.steps} />
         <FlatList
           style={{ width: "100%" }}
           numColumns={3}
