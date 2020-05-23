@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated, RecyclerViewBackedScrollView } from 'react-native';
 
 interface Props {
   isEmpty?: boolean;
   number?: number;
+  onFlip?: Function;
 }
 
 export default function Card(props: Props) {
@@ -23,19 +24,19 @@ export default function Card(props: Props) {
   const frontAnimatedStyle = setupFrontFlip(cardAnimatedValue);
   const backAnimatedStyle = setupBackFlip(cardAnimatedValue);
 
-
   return (
-    <TouchableOpacity onPress={() => {
-      flipCard(cardAnimatedInt, cardAnimatedValue, numberSideFlexValue, hiddenSideFlexValue);
-    }} style={styles.container}>
-      <Animated.View style={[styles.cardContainer, backAnimatedStyle, {flex: numberSideFlexValue, height: 0}]}>
-        <Animated.Text style={[styles.text]}>{props.number}</Animated.Text>
-      </Animated.View>
-      <Animated.View style={[styles.cardContainer, frontAnimatedStyle, {flex: hiddenSideFlexValue, height: 0}]}>
-        <Animated.Text style={[styles.text]}>{"?"}</Animated.Text>
-      </Animated.View>
+    <TouchableOpacity onPress={() => props.onFlip()} style={styles.container}>
+      <View style={[styles.cardContainer, {flex: 1, height: 0}]}>
+        <Text style={[styles.text]}>{props.number}</Text>
+      </View>
     </TouchableOpacity>
   );
+}
+
+function childFlipCardCallback(cardAnimatedValue: Animated.Value, numberFlexValue: Animated.Value, hiddenFlexValue: Animated.Value) {
+  return function () {
+    flipCard(180, cardAnimatedValue, numberFlexValue, hiddenFlexValue);
+  }
 }
 
 function getNewAnimatedValue(value: number): Animated.Value {
@@ -43,7 +44,6 @@ function getNewAnimatedValue(value: number): Animated.Value {
 }
 
 function flipCard(flipValue: number, cardAnimatedValue: Animated.Value, numberFlexValue: Animated.Value, hiddenFlexValue: Animated.Value) {
-  console.log(flipValue);
   if (flipValue >= 90) {
     Animated.spring(cardAnimatedValue,{
       toValue: 0,

@@ -1,34 +1,60 @@
 import React from 'react';
-import { StyleSheet, Text, View, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, Animated, FlatList, SafeAreaView } from 'react-native';
 import Card from "./Components/Card";
 import Header from "./Components/Header";
 import { NUMBER_OF_RANDOM_NUMBERS } from "../../Constants";
+import { connect, Dispatch } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import {resetStep, incrementStep, RootActions} from "../../Actions/Index";
 
-interface Props {
-
+interface FlippedCard {
+  flipCard: Function;
+  number: number;
 }
+type Props = {
+  steps: number;
+} & RootActions
+
 interface State {
   cardNumbers: number[];
   steps: number;
+  flippedCards: FlippedCard[];
 }
-export default class Home extends React.Component<Props, State>{
+class Home extends React.Component<Props, State>{
 
   constructor(props) {
     super(props);
     this.state = {
       cardNumbers: [],
-      steps: 309
+      steps: 0,
+      flippedCards: []
     };
-
   }
+
   componentDidMount() {
+    this.props.resetStep();
     this.populateCards();
   }
 
-  restart(self) {
-    self.setState({
-      steps: 0
-    });
+  restart(flippedCardsArr: FlippedCard[]) {
+    flippedCardsArr.splice(0, flippedCardsArr.length);
+    this.populateCards();
+  }
+
+  flipCard(self, flippedCardsArr: FlippedCard[]) {
+    // let { count, actions } = this.props;
+    
+    return async function (card: FlippedCard) {
+      flippedCardsArr.push(card);
+      
+      console.log(flippedCardsArr.length % 2 === 0 );
+
+      if (flippedCardsArr.length % 2 === 0 && flippedCardsArr[flippedCardsArr.length - 2].number !== card.number) {
+        await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
+        flippedCardsArr[flippedCardsArr.length - 2].flipCard();
+        card.flipCard();
+      }
+    }
   }
 
   populateCards() {
@@ -69,18 +95,20 @@ export default class Home extends React.Component<Props, State>{
   }
 
   render() {
+    const flippedCardsArr = [];
     return (
       <SafeAreaView style={styles.container}>
-        <Header restart={() => this.restart(this)} steps={this.state.steps} />
+        <Header restart={() => console.log("test")} steps={this.props.steps} />
         <FlatList
           style={{ width: "100%" }}
           numColumns={3}
+          keyExtractor={(item, index) => `${index}`}
           data={this.state.cardNumbers}
           renderItem={({ item }) => {
             if (item === -1) {
               return <Card isEmpty />
             }
-            return <Card number={item} />
+            return <Card onFlip={this.props.incrementStep} number={item} />
           }}
         />
       </SafeAreaView>
@@ -105,5 +133,19 @@ const styles = StyleSheet.create({
     margin: 10,
   }
 });
+
+const mapStateToProps = (state: {step: {count: number}}) => ({
+  steps: state.step.count
+});
+
+
+const ActionCreators = Object.assign(
+  {},
+  {resetStep, incrementStep}
+);
+
+const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home)
 
 

@@ -1,10 +1,16 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import configureStore from './Store/Index';
 import Home from "./Views/Home/Index";
+import { Provider } from 'react-redux';
+
+const store = configureStore()
 
 export default function App() {
   return (
-    <Home />
+    <Provider store={store}>
+      <Home />
+    </Provider>
+    
   );
 }
 
