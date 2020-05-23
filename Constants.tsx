@@ -1,1 +1,1 @@
-export const NUMBER_OF_RANDOM_NUMBERS = 7;
+export const NUMBER_OF_RANDOM_NUMBERS = 2;

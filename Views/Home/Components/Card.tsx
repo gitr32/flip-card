@@ -3,13 +3,13 @@ import { StyleSheet, Text, View, TouchableOpacity, Animated } from 'react-native
 import { connect, Dispatch } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { ICard } from "../../../Reducers/CardReducer";
-import { flipCard, RootActions } from "../../../Actions/Index";
+import { incrementStep, RootActions } from "../../../Actions/Index";
 
 interface Props {
   isEmpty?: boolean;
   onFlip?: Function;
   card: ICard;
-  flipCard: Function;
+  incrementStep: Function;
 }
 
 function Card(props: Props) {
@@ -28,12 +28,28 @@ function Card(props: Props) {
 
 
   const frontAnimatedStyle = setupFrontFlip(cardAnimatedValue);
-  const backAnimatedStyle = setupBackFlip(cardAnimatedValue);
 
   return (
     <TouchableOpacity style={{flex: 1}} onPress={() => {
-      props.onFlip()
-      props.flipCard(props.card.id);
+      
+      props.onFlip(props.card, () => {
+        Animated.spring(cardAnimatedValue,{
+          toValue: 0,
+          friction: 8,
+          tension: 10
+        }).start();
+
+        Animated.timing(valueOpacityAnimatedValue, {
+          toValue: 0,
+          duration: 200
+        }).start();
+
+        Animated.timing(placeholderOpacityAnimatedValue, {
+          toValue: 1,
+          duration: 500
+        }).start();  
+      });
+
       if (cardAnimatedInt < 90) {
         Animated.spring(cardAnimatedValue,{
           toValue: 180,
@@ -49,23 +65,8 @@ function Card(props: Props) {
           toValue: 0,
           duration: 200
         }).start();
-      } else {
-        Animated.spring(cardAnimatedValue,{
-          toValue: 0,
-          friction: 8,
-          tension: 10
-        }).start();
-
-        Animated.timing(valueOpacityAnimatedValue, {
-          toValue: 0,
-          duration: 200
-        }).start();
-
-        Animated.timing(placeholderOpacityAnimatedValue, {
-          toValue: 1,
-          duration: 500
-        }).start();
       }
+      props.incrementStep();
     }}>
       <Animated.View style={[styles.container, frontAnimatedStyle]}>
         <Animated.View style={[styles.cardContainer]}>
@@ -168,15 +169,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state, ownProps) => ({
-  // card: state.card.cards[ownProps.index]
-});
-
 const ActionCreators = Object.assign(
   {},
-  { flipCard }
+  { incrementStep }
 );
 
 const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);
 
-export default connect(mapStateToProps, mapDispatchToProps)(Card)
+export default connect(null, mapDispatchToProps)(Card)

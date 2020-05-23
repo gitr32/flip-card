@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, Animated, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import Card from "./Components/Card";
 import Header from "./Components/Header";
-import { NUMBER_OF_RANDOM_NUMBERS } from "../../Constants";
 import { connect, Dispatch } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {resetStep, incrementStep, resetCards, RootActions} from "../../Actions/Index";
+import {NUMBER_OF_RANDOM_NUMBERS} from "../../Constants";
+import {resetStep, resetCards, RootActions} from "../../Actions/Index";
+import {ICard} from "../../Reducers/CardReducer";
 
 interface FlippedCard {
   flipCard: Function;
@@ -14,30 +15,43 @@ interface FlippedCard {
 type Props = {
   steps: number;
   cards: any;
+  lastFlippedCard: ICard;
 } & RootActions
 
 interface State {
+  cards: ICard[];
   cardNumbers: number[];
   flippedCards: FlippedCard[];
+  flipBackFunctions: Function[];
 }
 class Home extends React.Component<Props, State>{
   constructor(props) {
     super(props);
     this.state = {
       cardNumbers: [],
-      flippedCards: []
+      flippedCards: [],
+      flipBackFunctions: [],
+      cards: []
     };
   }
 
   componentDidMount() {
     this.props.resetStep();
-    this.populateCards();
+    this.props.resetCards();
   }
 
-  restart(flippedCardsArr: FlippedCard[]) {
-    this.props.resetStep();
-    flippedCardsArr.splice(0, flippedCardsArr.length);
-    this.populateCards();
+  restart(flippedCardsArr: FlippedCard[],flippedCardsBackFuncArr, matchedNumbers) {
+    return function () {
+      flippedCardsArr.splice(0, flippedCardsArr.length);
+      
+      for (let flippedCardsBackFunc of flippedCardsBackFuncArr) {
+        flippedCardsBackFunc();
+      }
+      flippedCardsBackFuncArr.splice(0, flippedCardsBackFuncArr.length);
+  
+      matchedNumbers.splice(0, matchedNumbers.length);
+      console.log("DONE");
+    }
   }
 
   flipCard(self, flippedCardsArr: FlippedCard[]) {
@@ -52,55 +66,41 @@ class Home extends React.Component<Props, State>{
     }
   }
 
-  populateCards() {
-    const randomNumbersMap = {};
-    const randomNumbers = [];
-    for (let i = 0; i < NUMBER_OF_RANDOM_NUMBERS; i++) {
-      let randomNumber = Math.ceil((Math.random() * 100) + 1);
-      while (randomNumbersMap[randomNumber]) {
-        randomNumber = Math.ceil((Math.random() * 100) + 1);
+  
+
+  onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers, totalNumbers) {
+    return function (card, flipBackFunction) {
+      const lastFlippedCardIndex = flippedCardsArr.length - 1;
+      const lastFlippedCard = flippedCardsArr[flippedCardsArr.length - 1];
+      if (lastFlippedCardIndex % 2 === 0 && lastFlippedCard) {
+        if (lastFlippedCard.value === card.value) {
+          matchedNumbers.push(lastFlippedCard.value);
+          if (matchedNumbers.length === NUMBER_OF_RANDOM_NUMBERS) {
+            console.log("GAME END");
+          }
+        } else {
+          setTimeout(() => {
+            flippedCardsBackFuncArr[lastFlippedCardIndex]();
+            flipBackFunction();
+          }, 1000);
+        }
+        flippedCardsBackFuncArr.push(flipBackFunction);
+        flippedCardsArr.push(card);
+      } else {
+        flippedCardsArr.push(card);
+        flippedCardsBackFuncArr.push(flipBackFunction);
       }
-      randomNumbersMap[randomNumber] = true;
-      randomNumbers.push(randomNumber);
-      randomNumbers.push(randomNumber);
     }
-
-    this.randomizeArr(randomNumbers);
-    if (randomNumbers.length % 3 !== 0) {
-      while (randomNumbers.length % 3 !== 0) {
-        randomNumbers.push(-1);
-      }
-    }
-
-    const cardsArr = randomNumbers.map((number, index) => {
-      return {
-        id: index,
-        value: number,
-        flipped: false
-      }
-    });
-    
-    this.props.resetCards(cardsArr);
-  }
-
-  randomizeArr(arr: number[]) {
-    for (let i = 0; i < arr.length; i++) {
-      const randomIndex = Math.ceil((Math.random() * i));
-      this.swap(arr, i, randomIndex);
-    }
-  }
-
-  swap(arr: number[], index1: number, index2: number) {
-    const temp = arr[index1];
-    arr[index1] = arr[index2];
-    arr[index2] = temp;
   }
 
   render() {
     const flippedCardsArr = [];
+    const flippedCardsBackFuncArr = [];
+    const matchedNumbers = [];
+    const totalNumbers = this.props.cards.length;
     return (
       <SafeAreaView style={styles.container}>
-        <Header restart={() => this.restart(flippedCardsArr)} steps={this.props.steps} />
+        <Header restart={this.restart(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers)} />
         <FlatList
           style={{ width: "100%" }}
           numColumns={3}
@@ -110,7 +110,7 @@ class Home extends React.Component<Props, State>{
             if (item.value === -1) {
               return <Card isEmpty />
             }
-            return <Card onFlip={this.props.incrementStep} card={item} />
+            return <Card onFlip={this.onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers, totalNumbers)} card={item} />
           }}
         />
       </SafeAreaView>
@@ -136,15 +136,13 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = (state: {step: {count: number}, card: {cards: any} }) => ({
-  steps: state.step.count,
+const mapStateToProps = (state: {step: {count: number}, card: {cards: any, lastFlippedCard: ICard} }) => ({
   cards: state.card.cards
 });
 
-
 const ActionCreators = Object.assign(
   {},
-  {resetStep, incrementStep, resetCards}
+  {resetStep, resetCards}
 );
 
 const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);

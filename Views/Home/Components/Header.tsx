@@ -1,16 +1,26 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { connect, Dispatch } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { RootActions,resetCards, resetStep } from "../../../Actions/Index";
 
 interface Props {
-  steps: number;
   restart: Function;
+  steps: number;
+  resetCards: Function;
+  resetStep: Function;
 }
 
-export default function Header(props: Props) {
+export function Header(props: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.subContainer}>
-        <TouchableOpacity onPress={() => props.restart()}>
+        <TouchableOpacity onPress={async () => {
+          props.restart();
+          await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000))
+          props.resetCards();
+          props.resetStep();
+          }}>
           <Text style={styles.restartText}>Restart</Text>
         </TouchableOpacity>
       </View>
@@ -55,3 +65,17 @@ const styles = StyleSheet.create({
     margin: 10,
   },
 });
+
+const mapStateToProps = (state: { step: { count: number } }) => ({
+  steps: state.step.count
+});
+
+const ActionCreators = Object.assign(
+  {},
+  {resetCards, resetStep}
+);
+
+const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header)
