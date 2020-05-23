@@ -5,7 +5,7 @@ import Header from "./Components/Header";
 import { NUMBER_OF_RANDOM_NUMBERS } from "../../Constants";
 import { connect, Dispatch } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import {resetStep, incrementStep, RootActions} from "../../Actions/Index";
+import {resetStep, incrementStep, resetCards, RootActions} from "../../Actions/Index";
 
 interface FlippedCard {
   flipCard: Function;
@@ -13,6 +13,7 @@ interface FlippedCard {
 }
 type Props = {
   steps: number;
+  cards: any;
 } & RootActions
 
 interface State {
@@ -42,8 +43,6 @@ class Home extends React.Component<Props, State>{
   flipCard(self, flippedCardsArr: FlippedCard[]) {
     return async function (card: FlippedCard) {
       flippedCardsArr.push(card);
-      
-      console.log(flippedCardsArr.length % 2 === 0 );
 
       if (flippedCardsArr.length % 2 === 0 && flippedCardsArr[flippedCardsArr.length - 2].number !== card.number) {
         await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
@@ -72,9 +71,16 @@ class Home extends React.Component<Props, State>{
         randomNumbers.push(-1);
       }
     }
-    this.setState({
-      cardNumbers: randomNumbers
+
+    const cardsArr = randomNumbers.map((number, index) => {
+      return {
+        id: index,
+        value: number,
+        flipped: false
+      }
     });
+    
+    this.props.resetCards(cardsArr);
   }
 
   randomizeArr(arr: number[]) {
@@ -99,12 +105,12 @@ class Home extends React.Component<Props, State>{
           style={{ width: "100%" }}
           numColumns={3}
           keyExtractor={(item, index) => `${index}`}
-          data={this.state.cardNumbers}
-          renderItem={({ item }) => {
-            if (item === -1) {
+          data={this.props.cards}
+          renderItem={({ item , index}) => {
+            if (item.value === -1) {
               return <Card isEmpty />
             }
-            return <Card onFlip={this.props.incrementStep} number={item} />
+            return <Card onFlip={this.props.incrementStep} card={item} />
           }}
         />
       </SafeAreaView>
@@ -130,14 +136,15 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = (state: {step: {count: number}}) => ({
-  steps: state.step.count
+const mapStateToProps = (state: {step: {count: number}, card: {cards: any} }) => ({
+  steps: state.step.count,
+  cards: state.card.cards
 });
 
 
 const ActionCreators = Object.assign(
   {},
-  {resetStep, incrementStep}
+  {resetStep, incrementStep, resetCards}
 );
 
 const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);

@@ -5,8 +5,6 @@ const initialState = {
 };
 
 const stepReducer = (state = initialState, action) => {
-  console.log(action);
-  console.log(state)
   switch (action.type) {
     case RESET_STEP:
       return {

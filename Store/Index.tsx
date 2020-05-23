@@ -1,9 +1,11 @@
-import { createStore, combineReducers } from 'redux';
-import stepReducer from '../Reducers/StepReducer';
+import { createStore, combineReducers } from "redux";
+import stepReducer from "../Reducers/StepReducer";
+import cardReducer from "../Reducers/CardReducer";
 
 const rootReducer = combineReducers(
   {
-    step: stepReducer
+    step: stepReducer,
+    card: cardReducer
   }
 );
 const configureStore = () => {
