@@ -1,94 +1,86 @@
 import React, {useState} from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Animated, RecyclerViewBackedScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated } from 'react-native';
+import { connect, Dispatch } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { ICard } from "../../../Reducers/CardReducer";
+import { flipCard, RootActions } from "../../../Actions/Index";
 
 interface Props {
   isEmpty?: boolean;
-  number?: number;
   onFlip?: Function;
+  card: ICard;
+  flipCard: Function;
 }
 
-export default function Card(props: Props) {
-  if (props.isEmpty || !props.number) {
+function Card(props: Props) {
+  if (props.isEmpty || !props.card.value) {
     return <View style={styles.emptyContainer}></View>
   }
-  
+
   let cardAnimatedInt = 0;
   const cardAnimatedValue = getNewAnimatedValue(0);
   cardAnimatedValue.addListener(({ value }) => {
     cardAnimatedInt = value;
   });
   
-  const numberSideFlexValue = getNewAnimatedValue(0);
-  const hiddenSideFlexValue = getNewAnimatedValue(1);
+  const valueOpacityAnimatedValue = getNewAnimatedValue(0);
+  const placeholderOpacityAnimatedValue = getNewAnimatedValue(1);
+
 
   const frontAnimatedStyle = setupFrontFlip(cardAnimatedValue);
   const backAnimatedStyle = setupBackFlip(cardAnimatedValue);
 
   return (
-    <TouchableOpacity onPress={() => props.onFlip()} style={styles.container}>
-      <View style={[styles.cardContainer, {flex: 1, height: 0}]}>
-        <Text style={[styles.text]}>{props.number}</Text>
-      </View>
+    <TouchableOpacity style={{flex: 1}} onPress={() => {
+      props.onFlip()
+      props.flipCard(props.card.id);
+      if (cardAnimatedInt < 90) {
+        Animated.spring(cardAnimatedValue,{
+          toValue: 180,
+          friction: 8,
+          tension: 10
+        }).start();
+        Animated.timing(valueOpacityAnimatedValue, {
+          toValue: 1,
+          duration: 500
+        }).start();
+
+        Animated.timing(placeholderOpacityAnimatedValue, {
+          toValue: 0,
+          duration: 200
+        }).start();
+      } else {
+        Animated.spring(cardAnimatedValue,{
+          toValue: 0,
+          friction: 8,
+          tension: 10
+        }).start();
+
+        Animated.timing(valueOpacityAnimatedValue, {
+          toValue: 0,
+          duration: 200
+        }).start();
+
+        Animated.timing(placeholderOpacityAnimatedValue, {
+          toValue: 1,
+          duration: 500
+        }).start();
+      }
+    }}>
+      <Animated.View style={[styles.container, frontAnimatedStyle]}>
+        <Animated.View style={[styles.cardContainer]}>
+          <Animated.Text style={[styles.text, {opacity: placeholderOpacityAnimatedValue}]}>{"?"}</Animated.Text>
+        </Animated.View>
+        <Animated.View style={[styles.cardContainer]}>
+          <Animated.Text style={[styles.text, {transform: [{rotateY: '180deg'}] ,opacity: valueOpacityAnimatedValue }]}>{props.card.value}</Animated.Text>
+        </Animated.View>
+      </Animated.View>
     </TouchableOpacity>
   );
 }
 
-function childFlipCardCallback(cardAnimatedValue: Animated.Value, numberFlexValue: Animated.Value, hiddenFlexValue: Animated.Value) {
-  return function () {
-    flipCard(180, cardAnimatedValue, numberFlexValue, hiddenFlexValue);
-  }
-}
-
 function getNewAnimatedValue(value: number): Animated.Value {
   return new Animated.Value(value);
-}
-
-function flipCard(flipValue: number, cardAnimatedValue: Animated.Value, numberFlexValue: Animated.Value, hiddenFlexValue: Animated.Value) {
-  if (flipValue >= 90) {
-    Animated.spring(cardAnimatedValue,{
-      toValue: 0,
-      friction: 8,
-      tension: 10
-    }).start();
-
-    Animated.timing(
-      numberFlexValue,
-      {
-        toValue: 0,
-        duration: 0,
-      }
-    ).start();
-
-    Animated.timing(
-      hiddenFlexValue,
-      {
-        toValue: 1,
-        duration: 0,
-      }
-    ).start();
-  } else {
-    Animated.spring(cardAnimatedValue,{
-      toValue: 180,
-      friction: 8,
-      tension: 10
-    }).start();
-
-    Animated.timing(
-      numberFlexValue,
-      {
-        toValue: 1,
-        duration: 0,
-      }
-    ).start();
-
-    Animated.timing(
-      hiddenFlexValue,
-      {
-        toValue: 0,
-        duration: 0,
-      }
-    ).start();
-  }
 }
 
 function setupFrontFlip (animatedValue: Animated.Value): {
@@ -128,20 +120,38 @@ function setupBackFlip(animatedValue: Animated.Value): {
   return backAnimatedStyle;
 }
 
+function setupSide1(animatedValue: Animated.Value): {
+  transform: {
+    scaleY: Animated.AnimatedInterpolation;
+  } []
+} {
+  const side1Interpolate = animatedValue.interpolate({
+    inputRange: [0, 30],
+    outputRange: [0, 30]
+  });
+
+  const side1AnimatedStyle = {
+    transform: [
+      { scaleY: side1Interpolate }
+    ]
+  }
+  return side1AnimatedStyle;
+}
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
     height: 150,
     margin: 10,
-
-  },
-  cardContainer: {
-    flex: 1,
     backgroundColor: '#121f75',
     justifyContent: 'center',
     borderRadius: 20
+  },
+  cardContainer: {
+    position: "absolute",
+    width: "100%",
+    textAlign: "center"
   },
   text: {
     textAlign: 'center',
@@ -157,3 +167,16 @@ const styles = StyleSheet.create({
     margin: 10,
   },
 });
+
+const mapStateToProps = (state, ownProps) => ({
+  // card: state.card.cards[ownProps.index]
+});
+
+const ActionCreators = Object.assign(
+  {},
+  { flipCard }
+);
+
+const mapDispatchToProps = (dispatch: Dispatch<RootActions>) => bindActionCreators(ActionCreators, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(Card)
