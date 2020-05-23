@@ -17,16 +17,13 @@ type Props = {
 
 interface State {
   cardNumbers: number[];
-  steps: number;
   flippedCards: FlippedCard[];
 }
 class Home extends React.Component<Props, State>{
-
   constructor(props) {
     super(props);
     this.state = {
       cardNumbers: [],
-      steps: 0,
       flippedCards: []
     };
   }
@@ -43,8 +40,6 @@ class Home extends React.Component<Props, State>{
   }
 
   flipCard(self, flippedCardsArr: FlippedCard[]) {
-    // let { count, actions } = this.props;
-    
     return async function (card: FlippedCard) {
       flippedCardsArr.push(card);
       
