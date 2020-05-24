@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import { StyleSheet, FlatList, SafeAreaView, Alert } from 'react-native';
 import Card from "./Components/Card";
 import Header from "./Components/Header";
 import { connect, Dispatch } from 'react-redux';
@@ -50,7 +50,6 @@ class Home extends React.Component<Props, State>{
       flippedCardsBackFuncArr.splice(0, flippedCardsBackFuncArr.length);
   
       matchedNumbers.splice(0, matchedNumbers.length);
-      console.log("DONE");
     }
   }
 
@@ -68,7 +67,8 @@ class Home extends React.Component<Props, State>{
 
   
 
-  onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers, totalNumbers) {
+  onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers) {
+    const restart = this.restart(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers);
     return function (card, flipBackFunction) {
       const lastFlippedCardIndex = flippedCardsArr.length - 1;
       const lastFlippedCard = flippedCardsArr[flippedCardsArr.length - 1];
@@ -76,7 +76,14 @@ class Home extends React.Component<Props, State>{
         if (lastFlippedCard.value === card.value) {
           matchedNumbers.push(lastFlippedCard.value);
           if (matchedNumbers.length === NUMBER_OF_RANDOM_NUMBERS) {
-            console.log("GAME END");
+            Alert.alert("Congratulations!", `You won the game by ${flippedCardsArr.length + 1} steps`, [{
+              text: "Try another round",
+              onPress: () => {
+                flipBackFunction();
+                restart();
+              }
+            }]);
+            return;
           }
         } else {
           setTimeout(() => {
@@ -97,7 +104,6 @@ class Home extends React.Component<Props, State>{
     const flippedCardsArr = [];
     const flippedCardsBackFuncArr = [];
     const matchedNumbers = [];
-    const totalNumbers = this.props.cards.length;
     return (
       <SafeAreaView style={styles.container}>
         <Header restart={this.restart(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers)} />
@@ -110,7 +116,7 @@ class Home extends React.Component<Props, State>{
             if (item.value === -1) {
               return <Card isEmpty />
             }
-            return <Card onFlip={this.onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers, totalNumbers)} card={item} />
+            return <Card onFlip={this.onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers)} card={item} />
           }}
         />
       </SafeAreaView>
