@@ -12,7 +12,6 @@ const stepReducer = (state = initialState, action) => {
         count: 0
       };
     case INCREMENT_STEP:
-      console.log("Increment step");
       return {
         ...state,
         count: ++state.count

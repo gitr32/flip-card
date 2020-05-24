@@ -31,7 +31,6 @@ function swap(arr: number[], index1: number, index2: number) {
 const cardReducer = (state = initialState, action) => {
   switch (action.type) {
     case RESET_CARDS:
-      console.log("RESET CARDS");
       const randomNumbersMap = {};
       const randomNumbers = [];
       for (let i = 0; i < NUMBER_OF_RANDOM_NUMBERS; i++) {
