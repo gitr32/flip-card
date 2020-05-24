@@ -69,6 +69,7 @@ class Home extends React.Component<Props, State>{
 
   onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers) {
     const restart = this.restart(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers);
+    const resetStep = this.props.resetStep;
     return function (card, flipBackFunction) {
       const lastFlippedCardIndex = flippedCardsArr.length - 1;
       const lastFlippedCard = flippedCardsArr[flippedCardsArr.length - 1];
@@ -81,6 +82,7 @@ class Home extends React.Component<Props, State>{
               onPress: () => {
                 flipBackFunction();
                 restart();
+                resetStep();
               }
             }]);
             return;
