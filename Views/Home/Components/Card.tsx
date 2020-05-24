@@ -23,57 +23,32 @@ function Card(props: Props) {
     cardAnimatedInt = value;
   });
   
-  const valueOpacityAnimatedValue = getNewAnimatedValue(0);
-  const placeholderOpacityAnimatedValue = getNewAnimatedValue(1);
+  const backFaceOpacityAnimatedValue = getNewAnimatedValue(0);
+  const frontFaceOpacityAnimatedValue = getNewAnimatedValue(1);
 
 
   const frontAnimatedStyle = setupFrontFlip(cardAnimatedValue);
 
+
+  const animateShowBackFaceFunc = animateShowBackFace(cardAnimatedValue, frontFaceOpacityAnimatedValue, backFaceOpacityAnimatedValue);
+  const animateShowFrontFaceFunc = animateShowFrontFace(cardAnimatedValue, frontFaceOpacityAnimatedValue, backFaceOpacityAnimatedValue);
+
   return (
     <TouchableOpacity style={{flex: 1}} onPress={() => {
       
-      props.onFlip(props.card, () => {
-        Animated.spring(cardAnimatedValue,{
-          toValue: 0,
-          friction: 8,
-          tension: 10
-        }).start();
-
-        Animated.timing(valueOpacityAnimatedValue, {
-          toValue: 0,
-          duration: 200
-        }).start();
-
-        Animated.timing(placeholderOpacityAnimatedValue, {
-          toValue: 1,
-          duration: 500
-        }).start();  
-      });
+      props.onFlip(props.card, animateShowFrontFaceFunc);
 
       if (cardAnimatedInt < 90) {
-        Animated.spring(cardAnimatedValue,{
-          toValue: 180,
-          friction: 8,
-          tension: 10
-        }).start();
-        Animated.timing(valueOpacityAnimatedValue, {
-          toValue: 1,
-          duration: 500
-        }).start();
-
-        Animated.timing(placeholderOpacityAnimatedValue, {
-          toValue: 0,
-          duration: 200
-        }).start();
+        animateShowBackFaceFunc();
       }
       props.incrementStep();
     }}>
       <Animated.View style={[styles.container, frontAnimatedStyle]}>
         <Animated.View style={[styles.cardContainer]}>
-          <Animated.Text style={[styles.text, {opacity: placeholderOpacityAnimatedValue}]}>{"?"}</Animated.Text>
+          <Animated.Text style={[styles.text, {opacity: frontFaceOpacityAnimatedValue}]}>{"?"}</Animated.Text>
         </Animated.View>
         <Animated.View style={[styles.cardContainer]}>
-          <Animated.Text style={[styles.text, {transform: [{rotateY: '180deg'}] ,opacity: valueOpacityAnimatedValue }]}>{props.card.value}</Animated.Text>
+          <Animated.Text style={[styles.text, {transform: [{rotateY: '180deg'}] ,opacity: backFaceOpacityAnimatedValue }]}>{props.card.value}</Animated.Text>
         </Animated.View>
       </Animated.View>
     </TouchableOpacity>
@@ -102,6 +77,47 @@ function setupFrontFlip (animatedValue: Animated.Value): {
 
   return frontAnimatedStyle;
 }
+
+function animateShowBackFace (cardAnimatedValue: Animated.Value, frontFaceOpacityAnimatedValue: Animated.Value, backFaceOpacityAnimatedValue: Animated.Value) {
+  return function() {
+    Animated.spring(cardAnimatedValue,{
+      toValue: 180,
+      friction: 8,
+      tension: 10
+    }).start();
+    Animated.timing(backFaceOpacityAnimatedValue, {
+      toValue: 1,
+      duration: 500
+    }).start();
+  
+    Animated.timing(frontFaceOpacityAnimatedValue, {
+      toValue: 0,
+      duration: 200
+    }).start();
+  }
+}
+
+function animateShowFrontFace (cardAnimatedValue: Animated.Value, frontFaceOpacityAnimatedValue: Animated.Value, backFaceOpacityAnimatedValue: Animated.Value) {
+  return function() {
+    Animated.spring(cardAnimatedValue,{
+      toValue: 0,
+      friction: 8,
+      tension: 10
+    }).start();
+
+    Animated.timing(backFaceOpacityAnimatedValue, {
+      toValue: 0,
+      duration: 200
+    }).start();
+
+    Animated.timing(frontFaceOpacityAnimatedValue, {
+      toValue: 1,
+      duration: 500
+    }).start();
+  }
+}
+
+
 
 const styles = StyleSheet.create({
   container: {
