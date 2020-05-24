@@ -103,43 +103,6 @@ function setupFrontFlip (animatedValue: Animated.Value): {
   return frontAnimatedStyle;
 }
 
-function setupBackFlip(animatedValue: Animated.Value): {
-  transform: {
-      rotateY: Animated.AnimatedInterpolation;
-  }[];
-} {
-  const backInterpolate = animatedValue.interpolate({
-    inputRange: [0, 180],
-    outputRange: ['180deg', '360deg']
-  });
-
-  const backAnimatedStyle = {
-    transform: [
-      { rotateY: backInterpolate }
-    ]
-  }
-  return backAnimatedStyle;
-}
-
-function setupSide1(animatedValue: Animated.Value): {
-  transform: {
-    scaleY: Animated.AnimatedInterpolation;
-  } []
-} {
-  const side1Interpolate = animatedValue.interpolate({
-    inputRange: [0, 30],
-    outputRange: [0, 30]
-  });
-
-  const side1AnimatedStyle = {
-    transform: [
-      { scaleY: side1Interpolate }
-    ]
-  }
-  return side1AnimatedStyle;
-}
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
