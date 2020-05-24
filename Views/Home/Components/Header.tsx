@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { connect, Dispatch } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RootActions,resetCards, resetStep } from "../../../Actions/Index";
+import {RootState} from "../../../Store/Index";
 
 interface Props {
   restart: Function;
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: { step: { count: number } }) => ({
+const mapStateToProps = (state: RootState) => ({
   steps: state.step.count
 });
 

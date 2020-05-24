@@ -7,6 +7,7 @@ import { bindActionCreators } from 'redux';
 import {NUMBER_OF_RANDOM_NUMBERS} from "../../Constants";
 import {resetStep, resetCards, RootActions} from "../../Actions/Index";
 import {ICard} from "../../Reducers/CardReducer";
+import {RootState} from "../../Store/Index";
 
 interface FlippedCard {
   flipCard: Function;
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = (state: {step: {count: number}, card: {cards: any, lastFlippedCard: ICard} }) => ({
+const mapStateToProps = (state: RootState) => ({
   cards: state.card.cards
 });
 
