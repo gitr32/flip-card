@@ -21,7 +21,6 @@ type Props = {
 interface State {
   cards: ICard[];
   cardNumbers: number[];
-  flippedCards: FlippedCard[];
   flipBackFunctions: Function[];
 }
 class Home extends React.Component<Props, State>{
@@ -29,7 +28,6 @@ class Home extends React.Component<Props, State>{
     super(props);
     this.state = {
       cardNumbers: [],
-      flippedCards: [],
       flipBackFunctions: [],
       cards: []
     };
@@ -40,7 +38,7 @@ class Home extends React.Component<Props, State>{
     this.props.resetCards();
   }
 
-  restart(flippedCardsArr: FlippedCard[],flippedCardsBackFuncArr, matchedNumbers) {
+  restart(flippedCardsArr: ICard[],flippedCardsBackFuncArr:Function[], matchedNumbers:number[]) {
     return function () {
       flippedCardsArr.splice(0, flippedCardsArr.length);
       
@@ -52,22 +50,9 @@ class Home extends React.Component<Props, State>{
       matchedNumbers.splice(0, matchedNumbers.length);
     }
   }
-
-  flipCard(self, flippedCardsArr: FlippedCard[]) {
-    return async function (card: FlippedCard) {
-      flippedCardsArr.push(card);
-
-      if (flippedCardsArr.length % 2 === 0 && flippedCardsArr[flippedCardsArr.length - 2].number !== card.number) {
-        await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
-        flippedCardsArr[flippedCardsArr.length - 2].flipCard();
-        card.flipCard();
-      }
-    }
-  }
-
   
 
-  onFlip(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers) {
+  onFlip(flippedCardsArr:ICard[], flippedCardsBackFuncArr:Function[], matchedNumbers: number[]) {
     const restart = this.restart(flippedCardsArr, flippedCardsBackFuncArr, matchedNumbers);
     const resetStep = this.props.resetStep;
     return function (card, flipBackFunction) {
@@ -104,7 +89,7 @@ class Home extends React.Component<Props, State>{
 
   render() {
     const flippedCardsArr = [];
-    const flippedCardsBackFuncArr = [];
+    const flippedCardsBackFuncArr: Function[] = [];
     const matchedNumbers = [];
     return (
       <SafeAreaView style={styles.container}>
